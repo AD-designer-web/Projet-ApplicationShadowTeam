@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage('Build Docker Image') {
             steps {
-                dir("Containers/simple-flask-app") {
-                    sh 'docker build -t simple-flask-app:latest .'
+                dir("/app/") {
+                    sh 'docker build -t shadow .'
                 }
             }
         }
@@ -13,10 +13,10 @@ pipeline {
             steps
             {
                 script {
-                    containerName = sh(returnStdout: true, script: "docker ps -a -f 'name=test-container' --format '{{.Names}}'").trim()
-                    if(containerName == "test-container")
+                    containerName = sh(returnStdout: true, script: "docker ps -a -f 'name=shadow1' --format '{{.Names}}'").trim()
+                    if(containerName == "shadow1")
                     {
-                        sh 'docker rm test-container --force'
+                        sh 'docker rm shadow1 --force'
                         sh "echo 'Nettoyage environnement OK'"
                     }
                     else
@@ -29,7 +29,7 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh 'docker run -d -p 8090:8080 --name test-container simple-flask-app:latest'
+                sh 'docker run -d -p 8090:80 --name shadow:2.0.2 shadow1 '
                 sh 'sleep 15s'
             }
         }
@@ -41,14 +41,14 @@ pipeline {
 
         stage('Clean Environment') {
             steps {
-                sh 'docker stop test-container'
-                sh 'docker rm test-container'
+                sh 'docker stop shadow1'
+                sh 'docker rm shadow1'
             }
         }
     }
     post {
         success {
-            slackSend message:"A new version of simple-app-flask is succesful build - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+            slackSend message:"A new version of project is succesful build - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
         }
     }
 }
