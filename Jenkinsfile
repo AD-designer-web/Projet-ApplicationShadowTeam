@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Build Docker Image') {
             steps {
-                dir("/app/") {
+                dir("/") {
                     sh 'docker build -t shadow .'
                 }
             }
